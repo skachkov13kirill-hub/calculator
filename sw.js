@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finance-v2';
+const CACHE_NAME = 'finance-v3';
 const URLS_TO_CACHE = [
   './',
   './index.html',
