@@ -273,7 +273,7 @@
     <button onclick="showTab('categories')" class="tab-btn bg-white text-gray-600 hover:bg-purple-50 px-5 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" data-tab="categories">📁 Категории</button>
     <button onclick="showTab('trends')" class="tab-btn bg-white text-gray-600 hover:bg-purple-50 px-5 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" data-tab="trends">📈 Динамика</button>
     <button onclick="showTab('transactions')" class="tab-btn bg-white text-gray-600 hover:bg-purple-50 px-5 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" data-tab="transactions">📜 Операции</button>
-    <button onclick="showTab('excluded')" class="tab-btn bg-white text-gray-600 hover:bg-purple-50 px-5 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" data-tab="excluded">🚫 Исключения</button>
+    <button onclick="showTab('excluded')" class="tab-btn bg-white text-gray-600 hover:bg-purple-50 px-5 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" data-tab="excluded">🔀 Распределение</button>
     <button onclick="showTab('bizexpenses')" class="tab-btn bg-white text-gray-600 hover:bg-purple-50 px-5 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap" data-tab="bizexpenses">💼 Ателье</button>
   </div>
 
@@ -708,23 +708,44 @@ const CATEGORY_PATTERNS = [
 
 // ==================== ПАТТЕРНЫ ИСКЛЮЧЕНИЙ ====================
 
-const EXCLUSION_PATTERNS = [
-  'AVITO', 'АВИТО',
-  'YANDEX BUSINESS', 'ЯНДЕКС БИЗНЕС',
-  'LEROY', 'LERUA', 'ЛЕРУА', 'ЛЕМАНА', 'LEMANPRO', 'LEMANA PRO', 'LEMANAPROG',
-  'PETROVICH', 'ПЕТРОВИЧ', 'AFONYA', 'АФОНЯ', 'ASKONA', 'АСКОНА',
-  'IKEA', 'ИКЕА', 'HOFF', 'ХОФФ', 'OBI', 'ОБИ', 'CASTORAMA', 'МАКСИДОМ',
-  'TACHKA', 'ТАЧКА', 'DOLYAME', 'ДОЛЯМИ', 'PODELI', 'ПОДЕЛИ',
-  'HALVA', 'ХАЛВА', 'SPLIT', 'СПЛИТ', 'BRANCH',
-  'T-BANK', 'TBANK', 'Т-БАНК', 'TINKOFF', 'ТИНЬКОФФ',
-  'NETMONET', 'НЕТМОНЕТ', 'АЛЬФА-БАНК', 'ALFA-BANK', 'MAPP_SBERBANK',
-  'НАЛОГ', 'NALOG', 'ФНС', 'ГОСУСЛУГИ',
-  'ИНГОССТРАХ', 'INGOSSTRAKH', 'СТРАХОВ',
-  'НАЛИЧНЫЕ', 'CASH', 'ATM', 'БАНКОМАТ', 'ВЫДАЧА НАЛИЧНЫХ',
-  'ВОЗВРАТ', 'REFUND', 'КЭШБЭК', 'CASHBACK',
-  'КОМИССИЯ', 'COMMISSION', 'ОБСЛУЖИВАНИЕ КАРТЫ',
-  'VK РЕКЛАМА', 'DOMCLICK', 'ДОМКЛИК', 'YCLIENTS'
-];
+// ==================== ВЁДРА (ФАЗА 2) ====================
+// Каждый паттерн привязан к ведру: business / transit / unassigned
+
+const BUCKET_PATTERNS = {
+  business: [
+    'AVITO', 'АВИТО',
+    'YANDEX BUSINESS', 'ЯНДЕКС БИЗНЕС',
+    'VK РЕКЛАМА', 'DOMCLICK', 'ДОМКЛИК', 'YCLIENTS',
+    'НАЛОГ', 'NALOG', 'ФНС', 'ГОСУСЛУГИ',
+    'ИНГОССТРАХ', 'INGOSSTRAKH', 'СТРАХОВ'
+  ],
+  transit: [
+    'T-BANK', 'TBANK', 'Т-БАНК', 'TINKOFF', 'ТИНЬКОФФ',
+    'NETMONET', 'НЕТМОНЕТ', 'АЛЬФА-БАНК', 'ALFA-BANK', 'MAPP_SBERBANK',
+    'НАЛИЧНЫЕ', 'CASH', 'ATM', 'БАНКОМАТ', 'ВЫДАЧА НАЛИЧНЫХ',
+    'ВОЗВРАТ', 'REFUND', 'КЭШБЭК', 'CASHBACK',
+    'КОМИССИЯ', 'COMMISSION', 'ОБСЛУЖИВАНИЕ КАРТЫ',
+    'DOLYAME', 'ДОЛЯМИ', 'PODELI', 'ПОДЕЛИ',
+    'HALVA', 'ХАЛВА', 'SPLIT', 'СПЛИТ', 'BRANCH'
+  ],
+  unassigned: [
+    'LEROY', 'LERUA', 'ЛЕРУА', 'ЛЕМАНА', 'LEMANPRO', 'LEMANA PRO', 'LEMANAPROG',
+    'PETROVICH', 'ПЕТРОВИЧ', 'AFONYA', 'АФОНЯ', 'ASKONA', 'АСКОНА',
+    'IKEA', 'ИКЕА', 'HOFF', 'ХОФФ', 'OBI', 'ОБИ', 'CASTORAMA', 'МАКСИДОМ',
+    'TACHKA', 'ТАЧКА'
+  ]
+};
+
+// Плоский массив для обратной совместимости с shouldExclude()
+const EXCLUSION_PATTERNS = [...BUCKET_PATTERNS.business, ...BUCKET_PATTERNS.transit, ...BUCKET_PATTERNS.unassigned];
+
+// Метаданные вёдер
+const BUCKET_META = {
+  unassigned: { name: 'Нераспределённые', icon: '❓', color: '#F59E0B', bgColor: '#FFFBEB', borderColor: '#FCD34D' },
+  business:   { name: 'Бизнес',           icon: '💼', color: '#8B5CF6', bgColor: '#F5F3FF', borderColor: '#C4B5FD' },
+  transit:    { name: 'Транзит',           icon: '🔄', color: '#6B7280', bgColor: '#F9FAFB', borderColor: '#D1D5DB' },
+  family:     { name: 'Семья',             icon: '👨‍👩‍👧', color: '#10B981', bgColor: '#ECFDF5', borderColor: '#6EE7B7' }
+};
 
 const TRANSFER_PATTERNS = [
   'ПЕРЕВОД', 'TRANSFER', 'P2P', 'CARD2CARD', 'СБП', 'SBP', 'C2C',
@@ -822,6 +843,9 @@ const BIZ_EXPENSE_CATS = {
 
 // Правила привязки получателя → бизнес-категория  { "ПОЛУЧАТЕЛЬ": "rent" }
 let businessRules = {};
+
+// Правила привязки получателя → ведро { "MERCHANT": "business" | "transit" | "family" }
+let bucketRules = {};
 
 let currentMonth = '2026-01';
 let currentOwner = 'all';
@@ -924,10 +948,13 @@ function loadUserRules() {
     if (saved) userCategoryRules = JSON.parse(saved);
     const savedBiz = localStorage.getItem('businessRules');
     if (savedBiz) businessRules = JSON.parse(savedBiz);
+    const savedBuckets = localStorage.getItem('bucketRules');
+    if (savedBuckets) bucketRules = JSON.parse(savedBuckets);
   } catch (e) {
     console.error('Error loading user rules:', e);
     userCategoryRules = {};
     businessRules = {};
+    bucketRules = {};
   }
 }
 
@@ -1651,29 +1678,75 @@ function shouldExclude(desc, amount) {
   // Переводы — исключаем, кроме тренера
   if (isTransfer(desc)) {
     if (isTrainer(desc)) return { exclude: false };
-    return { exclude: true, reason: 'transfer' };
+    return { exclude: true, reason: 'transfer', bucket: 'transit' };
   }
   
-  // Крупные траты
+  // Крупные траты → нераспределённые (Кирилл решает)
   if (amount > LARGE_AMOUNT_THRESHOLD) {
-    return { exclude: true, reason: 'large_amount' };
+    return { exclude: true, reason: 'large_amount', bucket: 'unassigned' };
   }
   
-  // Паттерны исключений
+  // Паттерны исключений — определяем ведро
   for (const pattern of EXCLUSION_PATTERNS) {
     if (upper.includes(pattern.toUpperCase())) {
-      return { exclude: true, reason: 'pattern' };
+      const bucket = getBucketForPattern(pattern);
+      return { exclude: true, reason: 'pattern', bucket };
     }
   }
   
   // Телефоны
   for (const phone of EXCLUDE_PHONES) {
     if (desc && desc.includes(phone)) {
-      return { exclude: true, reason: 'phone' };
+      return { exclude: true, reason: 'phone', bucket: 'transit' };
     }
   }
   
   return { exclude: false };
+}
+
+// Определяем ведро по паттерну
+function getBucketForPattern(pattern) {
+  const p = pattern.toUpperCase();
+  for (const [bucket, patterns] of Object.entries(BUCKET_PATTERNS)) {
+    if (patterns.some(bp => bp.toUpperCase() === p)) return bucket;
+  }
+  return 'unassigned';
+}
+
+// Определяем ведро для транзакции (с учётом пользовательских правил)
+function getBucketForTx(tx) {
+  const merchant = (tx.merchant || tx.description || '').toUpperCase().trim();
+  
+  // 1. Пользовательские правила ведра (высший приоритет)
+  if (bucketRules[merchant]) return bucketRules[merchant];
+  
+  // 2. Если уже есть bucket — оставляем
+  if (tx.bucket && tx.bucket !== 'unassigned') return tx.bucket;
+  
+  // 3. Бизнес-правила (tagAsBusiness)
+  if (businessRules[merchant]) return 'business';
+  
+  // 4. По причине и паттернам
+  const reason = tx.reason || 'pattern';
+  if (reason === 'transfer' || reason === 'phone') return 'transit';
+  
+  const desc = (tx.description || '').toUpperCase();
+  for (const pattern of EXCLUSION_PATTERNS) {
+    if (desc.includes(pattern.toUpperCase())) {
+      return getBucketForPattern(pattern);
+    }
+  }
+  
+  if (reason === 'large_amount') return 'unassigned';
+  return 'unassigned';
+}
+
+// Ретроактивно назначает ведра всем excluded транзакциям
+function assignBucketsToAll() {
+  if (!budgetData.excludedTransactions) return;
+  budgetData.excludedTransactions.forEach(tx => {
+    tx.bucket = getBucketForTx(tx);
+  });
 }
 
 function extractMerchant(desc) {
@@ -1746,6 +1819,7 @@ function parseSberCreditText(text, filename) {
         merchant: extractMerchant(description),
         amount,
         reason: exclusion.reason,
+        bucket: exclusion.bucket || 'unassigned',
         monthKey: getMonthKey(date),
         owner,
         source: filename + ' (кредитная)'
@@ -1796,6 +1870,7 @@ function parseSberCreditText(text, filename) {
           merchant: extractMerchant(description),
           amount,
           reason: exclusion.reason,
+          bucket: exclusion.bucket || 'unassigned',
           monthKey: getMonthKey(date),
           owner,
           source: filename + ' (кредитная)'
@@ -1861,6 +1936,7 @@ function parseSberText(text, filename) {
         merchant: extractMerchant(description),
         amount,
         reason: exclusion.reason,
+        bucket: exclusion.bucket || 'unassigned',
         monthKey: getMonthKey(date),
         owner,
         source: filename
@@ -2004,10 +2080,10 @@ async function syncWithSheets() {
   
   try {
     // ШАГ 1: PULL из облака
-    const [txData, exData, rulesData, settingsData, bizRulesData] = await Promise.all([
+    const [txData, exData, rulesData, settingsData, bizRulesData, bucketRulesData] = await Promise.all([
       fetchFromSheets('transactions'), fetchFromSheets('excluded'),
       fetchFromSheets('rules'), fetchFromSheets('settings'),
-      fetchFromSheets('bizrules')
+      fetchFromSheets('bizrules'), fetchFromSheets('bucketrules')
     ]);
     
     // ШАГ 2: Merge + нормализация + дедупликация
@@ -2024,6 +2100,10 @@ async function syncWithSheets() {
     if (bizRulesData && bizRulesData.success && bizRulesData.data && Object.keys(bizRulesData.data).length > 0) {
       businessRules = { ...businessRules, ...bizRulesData.data };
       localStorage.setItem('businessRules', JSON.stringify(businessRules));
+    }
+    if (bucketRulesData && bucketRulesData.success && bucketRulesData.data && Object.keys(bucketRulesData.data).length > 0) {
+      bucketRules = { ...bucketRules, ...bucketRulesData.data };
+      localStorage.setItem('bucketRules', JSON.stringify(bucketRules));
     }
     if (settingsData.success && settingsData.data && Object.keys(settingsData.data).length > 0) {
       applyCloudSettings(settingsData.data);
@@ -2109,6 +2189,9 @@ async function uploadAllData() {
   }
   if (Object.keys(businessRules).length > 0) {
     promises.push(uploadToSheets(businessRules, 'bizrules'));
+  }
+  if (Object.keys(bucketRules).length > 0) {
+    promises.push(uploadToSheets(bucketRules, 'bucketrules'));
   }
   promises.push(uploadToSheets(getSettingsForSync(), 'settings'));
   return Promise.all(promises);
@@ -2642,164 +2725,157 @@ function renderExcluded() {
   if (excl.length === 0) {
     return `
       <div class="bg-white rounded-2xl p-8 shadow-sm text-center">
-        <div class="text-6xl mb-4">🚫</div>
+        <div class="text-6xl mb-4">🔀</div>
         <h3 class="font-semibold text-gray-700 mb-2">Нет исключённых операций</h3>
-        <p class="text-gray-500 text-sm">Загрузите выписки — исключённые переводы, бизнес-расходы и крупные траты будут показаны здесь</p>
+        <p class="text-gray-500 text-sm">Загрузите выписки — операции будут автоматически распределены по вёдрам</p>
       </div>
     `;
   }
   
-  // Фильтр по владельцу (месяц НЕ фильтруем — показываем всё для аналитики)
-  const ownerFiltered = excl.filter(tx => {
-    if (currentOwner !== 'all' && tx.owner !== currentOwner) return false;
-    return true;
+  // Назначаем ведра ретроактивно
+  assignBucketsToAll();
+  
+  // Фильтр по владельцу
+  const ownerFiltered = excl.filter(tx => currentOwner === 'all' || tx.owner === currentOwner);
+  
+  // Группируем по ведрам
+  const buckets = { unassigned: [], business: [], transit: [] };
+  ownerFiltered.forEach(tx => {
+    const b = tx.bucket || 'unassigned';
+    if (!buckets[b]) buckets[b] = [];
+    buckets[b].push(tx);
   });
   
-  const reasonLabels = {
-    'transfer': '🔄 Переводы',
-    'large_amount': '💰 Крупные (>' + formatMoney(LARGE_AMOUNT_THRESHOLD) + ')',
-    'pattern': '🏢 Бизнес/Рассрочки',
-    'phone': '📱 Переводы себе'
-  };
-  
-  // Общая статистика по причинам
-  const byReason = {};
+  // Статистика
+  const bucketStats = {};
   let totalExcl = 0;
-  ownerFiltered.forEach(tx => {
-    const r = tx.reason || 'pattern';
-    if (!byReason[r]) byReason[r] = { count: 0, total: 0 };
-    byReason[r].count++;
-    byReason[r].total += tx.amount;
-    totalExcl += tx.amount;
+  Object.entries(buckets).forEach(([bk, txs]) => {
+    const total = txs.reduce((s, t) => s + t.amount, 0);
+    bucketStats[bk] = { count: txs.length, total };
+    totalExcl += total;
   });
   
   const allIncluded = budgetData.transactions
     .filter(tx => currentOwner === 'all' || tx.owner === currentOwner)
     .reduce((s, tx) => s + tx.amount, 0);
   
-  // Собираем все месяцы
-  const allMonths = new Set();
-  ownerFiltered.forEach(tx => { if (tx.monthKey) allMonths.add(tx.monthKey); });
-  const months = [...allMonths].sort();
+  // Порядок: нераспределённые (первые!) → бизнес → транзит
+  const bucketOrder = ['unassigned', 'business', 'transit'];
   
-  // Группируем по причине → получатель → месяц
-  const reasonData = {};
-  ownerFiltered.forEach(tx => {
-    const r = tx.reason || 'pattern';
-    const m = tx.merchant || tx.description?.substring(0, 35) || 'Неизвестно';
-    if (!reasonData[r]) reasonData[r] = {};
-    if (!reasonData[r][m]) reasonData[r][m] = { total: 0, count: 0, months: {} };
-    reasonData[r][m].total += tx.amount;
-    reasonData[r][m].count++;
-    reasonData[r][m].months[tx.monthKey] = (reasonData[r][m].months[tx.monthKey] || 0) + tx.amount;
-  });
-  
-  // Рендерим секции по каждой причине
-  const reasonSections = Object.entries(byReason)
-    .sort((a, b) => b[1].total - a[1].total)
-    .map(([reason, stats]) => {
-      const recipients = reasonData[reason] || {};
-      const sortedRecipients = Object.entries(recipients).sort((a, b) => b[1].total - a[1].total);
-      const avgPerMonth = months.length > 0 ? Math.round(stats.total / months.length) : 0;
-      
-      return `
-        <div class="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden">
-          <div class="p-4 bg-orange-50 cursor-pointer" onclick="toggleExclSection('excl_${reason}')">
-            <div class="flex justify-between items-center">
-              <div>
-                <h3 class="font-semibold text-gray-800">${reasonLabels[reason] || reason}</h3>
-                <div class="text-xs text-gray-500">${stats.count} операций • ${sortedRecipients.length} получателей • ~${formatMoney(avgPerMonth)}/мес</div>
-              </div>
-              <div class="text-right">
-                <div class="text-lg font-bold text-orange-600">${formatMoney(stats.total)}</div>
-                <div class="text-xs text-gray-400" id="excl_${reason}_arrow">▼</div>
-              </div>
+  const bucketSections = bucketOrder.map(bk => {
+    const meta = BUCKET_META[bk];
+    const txs = buckets[bk] || [];
+    const stats = bucketStats[bk] || { count: 0, total: 0 };
+    if (txs.length === 0) return '';
+    
+    // Группируем по мерчанту
+    const byMerchant = {};
+    txs.forEach(tx => {
+      const m = tx.merchant || tx.description?.substring(0, 35) || 'Неизвестно';
+      if (!byMerchant[m]) byMerchant[m] = { total: 0, count: 0, items: [] };
+      byMerchant[m].total += tx.amount;
+      byMerchant[m].count++;
+      byMerchant[m].items.push(tx);
+    });
+    
+    const sortedMerchants = Object.entries(byMerchant).sort((a, b) => b[1].total - a[1].total);
+    const isUnassigned = bk === 'unassigned';
+    
+    return `
+      <div class="bg-white rounded-2xl shadow-sm mb-4 overflow-hidden" style="border-left:4px solid ${meta.color}">
+        <div class="p-4 cursor-pointer" style="background:${meta.bgColor}" onclick="toggleExclSection('bucket_${bk}')">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="font-semibold text-gray-800">${meta.icon} ${meta.name} ${isUnassigned ? '<span class="text-xs bg-amber-500 text-white px-2 py-0.5 rounded-full ml-1">Требует решения</span>' : ''}</h3>
+              <div class="text-xs text-gray-500">${stats.count} операций • ${sortedMerchants.length} получателей</div>
             </div>
-          </div>
-          
-          <div id="excl_${reason}" class="hidden">
-            <!-- Получатели с помесячной разбивкой -->
-            <div class="divide-y divide-gray-100">
-              ${sortedRecipients.map(([recipient, data]) => {
-                const recipientAvg = months.length > 0 ? Math.round(data.total / months.length) : 0;
-                const activeMonths = Object.keys(data.months).length;
-                
-                return `
-                  <div class="p-3 hover:bg-orange-50 transition group">
-                    <div class="flex justify-between items-start mb-2">
-                      <div class="flex-1 cursor-pointer" onclick="showExcludedDrill('${recipient.replace(/'/g, "\\'")}', '${reason}')">
-                        <div class="font-medium text-gray-800 text-sm">${recipient}${(() => { const bk = businessRules[(recipient || '').toUpperCase().trim()]; return bk && BIZ_EXPENSE_CATS[bk] ? ' <span style="font-size:9px; background:' + BIZ_EXPENSE_CATS[bk].color + '20; color:' + BIZ_EXPENSE_CATS[bk].color + '; padding:1px 6px; border-radius:4px; font-weight:600;">' + BIZ_EXPENSE_CATS[bk].icon + ' ' + BIZ_EXPENSE_CATS[bk].name + '</span>' : ''; })()}</div>
-                        <div class="text-xs text-gray-400">${data.count} операций • ${activeMonths} мес</div>
-                      </div>
-                      <div class="flex items-start gap-2">
-                        <div class="text-right cursor-pointer" onclick="showExcludedDrill('${recipient.replace(/'/g, "\\'")}', '${reason}')">
-                          <div class="font-bold text-gray-800">${formatMoney(data.total)}</div>
-                          <div class="text-xs text-gray-500">~${formatMoney(recipientAvg)}/мес</div>
-                        </div>
-                        <button onclick="event.stopPropagation(); deleteAllExcludedRecipient('${recipient.replace(/'/g, "\\'")}', '${reason}')" 
-                                class="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition p-1 -mr-1 text-lg" title="Убрать из отслеживания">✕</button>
-                      </div>
-                    </div>
-                    <div onclick="showExcludedDrill('${recipient.replace(/'/g, "\\'")}', '${reason}')" class="cursor-pointer">
-                    ${months.length > 1 ? `
-                      <div class="flex gap-1 overflow-x-auto pb-1">
-                        ${months.map(mk => {
-                          const val = data.months[mk] || 0;
-                          const maxVal = Math.max(...Object.values(data.months));
-                          const pct = maxVal > 0 ? Math.max(8, val / maxVal * 100) : 0;
-                          const monthName = getMonthShortName(mk);
-                          return val > 0 ? `
-                            <div class="flex flex-col items-center min-w-[38px]">
-                              <div class="text-[9px] text-gray-500 font-medium">${formatMoneyCompact(val)}</div>
-                              <div class="w-5 bg-gray-100 rounded-full overflow-hidden" style="height:24px">
-                                <div class="w-full bg-orange-400 rounded-full" style="height:${pct}%; margin-top:${100-pct}%"></div>
-                              </div>
-                              <div class="text-[8px] text-gray-400">${monthName}</div>
-                            </div>
-                          ` : `
-                            <div class="flex flex-col items-center min-w-[38px]">
-                              <div class="text-[9px] text-gray-300">—</div>
-                              <div class="w-5 bg-gray-50 rounded-full" style="height:24px"></div>
-                              <div class="text-[8px] text-gray-300">${monthName}</div>
-                            </div>
-                          `;
-                        }).join('')}
-                      </div>
-                    ` : ''}
-                    </div>
-                  </div>
-                `;
-              }).join('')}
+            <div class="text-right">
+              <div class="text-lg font-bold" style="color:${meta.color}">${formatMoney(stats.total)}</div>
+              <div class="text-xs text-gray-400" id="bucket_${bk}_arrow">${isUnassigned ? '▲' : '▼'}</div>
             </div>
           </div>
         </div>
-      `;
-    }).join('');
+        
+        <div id="bucket_${bk}" class="${isUnassigned ? '' : 'hidden'}">
+          <div class="divide-y divide-gray-100">
+            ${sortedMerchants.map(([merchant, data]) => {
+              const bizTag = businessRules[(merchant || '').toUpperCase().trim()];
+              const bizLabel = bizTag && BIZ_EXPENSE_CATS[bizTag] ? ' <span style="font-size:9px; background:' + BIZ_EXPENSE_CATS[bizTag].color + '20; color:' + BIZ_EXPENSE_CATS[bizTag].color + '; padding:1px 6px; border-radius:4px; font-weight:600;">' + BIZ_EXPENSE_CATS[bizTag].icon + ' ' + BIZ_EXPENSE_CATS[bizTag].name + '</span>' : '';
+              
+              return `
+                <div class="p-3 hover:bg-gray-50 transition group">
+                  <div class="flex justify-between items-start mb-1">
+                    <div class="flex-1 cursor-pointer" onclick="showExcludedDrill('${merchant.replace(/'/g, "\\'")}', '${(data.items[0]?.reason || 'pattern')}')">
+                      <div class="font-medium text-gray-800 text-sm">${merchant}${bizLabel}</div>
+                      <div class="text-xs text-gray-400">${data.count} операций</div>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <div class="text-right mr-2 cursor-pointer" onclick="showExcludedDrill('${merchant.replace(/'/g, "\\'")}', '${(data.items[0]?.reason || 'pattern')}')">
+                        <div class="font-bold text-gray-800 text-sm">${formatMoney(data.total)}</div>
+                      </div>
+                      ${renderBucketButtons(bk, merchant)}
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
   
   return `
-    <!-- Сводка -->
-    <div class="grid grid-cols-3 gap-3 mb-4">
-      <div class="bg-white rounded-2xl p-3 shadow-sm text-center">
-        <div class="text-xs text-gray-500">Исключено</div>
-        <div class="text-lg font-bold text-orange-600">${formatMoney(totalExcl)}</div>
-        <div class="text-[10px] text-gray-400">${ownerFiltered.length} операций</div>
-      </div>
-      <div class="bg-white rounded-2xl p-3 shadow-sm text-center">
+    <!-- Кнопка управления правилами -->
+    <div class="flex justify-end mb-3">
+      <button onclick="showRulesManager()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-1">
+        ⚙️ Мои правила <span class="text-xs text-gray-400">(${Object.keys(bucketRules).length + Object.keys(businessRules).length})</span>
+      </button>
+    </div>
+    
+    <!-- Сводка по вёдрам -->
+    <div class="grid grid-cols-4 gap-2 mb-4">
+      ${bucketOrder.map(bk => {
+        const meta = BUCKET_META[bk];
+        const stats = bucketStats[bk] || { count: 0, total: 0 };
+        return `
+          <div class="rounded-2xl p-3 shadow-sm text-center" style="background:${meta.bgColor}; border:1px solid ${meta.borderColor}">
+            <div class="text-lg">${meta.icon}</div>
+            <div class="text-xs text-gray-500">${meta.name}</div>
+            <div class="text-sm font-bold" style="color:${meta.color}">${formatMoney(stats.total)}</div>
+            <div class="text-[10px] text-gray-400">${stats.count} шт.</div>
+          </div>
+        `;
+      }).join('')}
+      <div class="bg-green-50 rounded-2xl p-3 shadow-sm text-center border border-green-200">
+        <div class="text-lg">👨‍👩‍👧</div>
         <div class="text-xs text-gray-500">В бюджете</div>
-        <div class="text-lg font-bold text-green-600">${formatMoney(allIncluded)}</div>
-        <div class="text-[10px] text-gray-400">${budgetData.transactions.filter(tx => currentOwner === 'all' || tx.owner === currentOwner).length} операций</div>
-      </div>
-      <div class="bg-white rounded-2xl p-3 shadow-sm text-center">
-        <div class="text-xs text-gray-500">Доля исключ.</div>
-        <div class="text-lg font-bold text-gray-700">${totalExcl + allIncluded > 0 ? Math.round(totalExcl / (totalExcl + allIncluded) * 100) : 0}%</div>
-        <div class="text-[10px] text-gray-400">от оборота</div>
+        <div class="text-sm font-bold text-green-600">${formatMoney(allIncluded)}</div>
+        <div class="text-[10px] text-gray-400">${budgetData.transactions.filter(tx => currentOwner === 'all' || tx.owner === currentOwner).length} шт.</div>
       </div>
     </div>
     
-    <div class="mb-3 text-xs text-gray-400 text-center">👆 Нажмите на секцию чтобы раскрыть • на получателя для деталей</div>
+    ${buckets.unassigned.length > 0 ? '<div class="mb-2 text-xs text-amber-600 text-center font-medium">⬆️ Нераспределённые ждут вашего решения — нажмите кнопку для сортировки</div>' : ''}
     
-    ${reasonSections}
+    ${bucketSections}
   `;
+}
+
+function renderBucketButtons(currentBucket, merchant) {
+  const escapedM = merchant.replace(/'/g, "\\'");
+  const buttons = [];
+  
+  if (currentBucket !== 'family') {
+    buttons.push(`<button onclick="event.stopPropagation(); moveToBucket('${escapedM}', 'family')" class="text-[10px] px-2 py-1 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition" title="В семью">👨‍👩‍👧</button>`);
+  }
+  if (currentBucket !== 'business') {
+    buttons.push(`<button onclick="event.stopPropagation(); moveToBucket('${escapedM}', 'business')" class="text-[10px] px-2 py-1 rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200 transition" title="В бизнес">💼</button>`);
+  }
+  if (currentBucket !== 'transit') {
+    buttons.push(`<button onclick="event.stopPropagation(); moveToBucket('${escapedM}', 'transit')" class="text-[10px] px-2 py-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition" title="В транзит">🔄</button>`);
+  }
+  
+  return `<div class="flex gap-1 opacity-0 group-hover:opacity-100 transition">${buttons.join('')}</div>`;
 }
 
 function toggleExclSection(id) {
@@ -2809,6 +2885,240 @@ function toggleExclSection(id) {
     el.classList.toggle('hidden');
     if (arrow) arrow.textContent = el.classList.contains('hidden') ? '▼' : '▲';
   }
+}
+
+// ==================== ПЕРЕМЕЩЕНИЕ МЕЖДУ ВЁДРАМИ ====================
+
+function moveToBucket(merchant, targetBucket) {
+  const key = (merchant || '').toUpperCase().trim();
+  if (!key) return;
+  
+  if (targetBucket === 'family') {
+    // Перенос в семейный бюджет — спрашиваем категорию
+    showExcludedDrill(merchant, '');
+    return;
+  }
+  
+  // Спрашиваем: запомнить навсегда?
+  const meta = BUCKET_META[targetBucket];
+  const remember = confirm(`Перенести «${merchant}» → ${meta.icon} ${meta.name}\n\n✅ OK = запомнить навсегда\n(Все будущие операции этого мерчанта будут в ${meta.name})`);
+  
+  if (remember) {
+    // Создаём правило ведра
+    bucketRules[key] = targetBucket;
+    saveBucketRules();
+  }
+  
+  // Обновляем ведро у всех транзакций этого мерчанта
+  saveToHistory(`Ведро: ${merchant} → ${meta.name}`);
+  
+  (budgetData.excludedTransactions || []).forEach(tx => {
+    const m = (tx.merchant || tx.description || '').toUpperCase().trim();
+    if (m === key) tx.bucket = targetBucket;
+  });
+  
+  saveData();
+  renderTab('excluded');
+  
+  showToast({
+    icon: meta.icon,
+    title: `→ ${meta.name}`,
+    message: `«${merchant.substring(0, 25)}» ${remember ? 'навсегда' : 'разово'} в ${meta.name}`,
+    type: 'success',
+    showUndo: true
+  });
+}
+
+function saveBucketRules() {
+  localStorage.setItem('bucketRules', JSON.stringify(bucketRules));
+  uploadAllDataDebounced();
+}
+
+function loadBucketRules() {
+  const saved = localStorage.getItem('bucketRules');
+  if (saved) bucketRules = JSON.parse(saved);
+}
+
+// ==================== ЭКРАН УПРАВЛЕНИЯ ПРАВИЛАМИ ====================
+
+function showRulesManager() {
+  // Собираем все правила в единый список
+  const rules = [];
+  
+  // 1. Пользовательские правила вёдер
+  Object.entries(bucketRules).forEach(([pattern, bucket]) => {
+    rules.push({ pattern, bucket, type: 'bucket', source: 'Кирилл', editable: true });
+  });
+  
+  // 2. Пользовательские бизнес-правила (tagAsBusiness)
+  Object.entries(businessRules).forEach(([pattern, bizCat]) => {
+    const catInfo = BIZ_EXPENSE_CATS[bizCat];
+    rules.push({ 
+      pattern, 
+      bucket: 'business', 
+      type: 'biz', 
+      bizCategory: bizCat,
+      bizCatName: catInfo ? catInfo.icon + ' ' + catInfo.name : bizCat,
+      source: 'Кирилл', 
+      editable: true 
+    });
+  });
+  
+  // 3. Пользовательские категории семьи
+  Object.entries(userCategoryRules).forEach(([pattern, category]) => {
+    rules.push({ pattern, bucket: 'family', type: 'category', category, source: 'Кирилл', editable: true });
+  });
+  
+  // 4. Встроенные паттерны вёдер (не редактируемые)
+  Object.entries(BUCKET_PATTERNS).forEach(([bucket, patterns]) => {
+    patterns.forEach(p => {
+      // Пропускаем если есть пользовательское правило
+      if (bucketRules[p.toUpperCase()] || businessRules[p.toUpperCase()]) return;
+      rules.push({ pattern: p, bucket, type: 'auto', source: 'авто', editable: false });
+    });
+  });
+  
+  // Сортируем: пользовательские сверху
+  rules.sort((a, b) => {
+    if (a.editable !== b.editable) return a.editable ? -1 : 1;
+    return a.pattern.localeCompare(b.pattern);
+  });
+  
+  document.getElementById('drillModal').classList.remove('hidden');
+  document.getElementById('drillModal').classList.add('flex');
+  document.getElementById('drillTitle').textContent = '⚙️ Мои правила';
+  
+  const userRules = rules.filter(r => r.editable);
+  const autoRules = rules.filter(r => !r.editable);
+  
+  document.getElementById('drillContent').innerHTML = `
+    <div class="mb-4 p-3 bg-blue-50 rounded-xl">
+      <div class="text-sm text-blue-800 font-medium">📋 ${rules.length} правил всего</div>
+      <div class="text-xs text-blue-600">${userRules.length} ваших • ${autoRules.length} встроенных</div>
+    </div>
+    
+    <!-- Поиск -->
+    <input type="text" id="rulesSearchInput" placeholder="🔍 Поиск по паттерну..." 
+           oninput="filterRulesList()" class="w-full p-3 border rounded-xl text-sm mb-3">
+    
+    <!-- Фильтр по ведру -->
+    <div class="flex gap-2 mb-4 flex-wrap">
+      <button onclick="filterRulesByBucket('all')" class="rules-bucket-filter text-xs px-3 py-1.5 rounded-lg bg-gray-200 text-gray-700 font-medium">Все</button>
+      ${Object.entries(BUCKET_META).map(([bk, meta]) => 
+        `<button onclick="filterRulesByBucket('${bk}')" class="rules-bucket-filter text-xs px-3 py-1.5 rounded-lg font-medium" style="background:${meta.bgColor}; color:${meta.color}; border:1px solid ${meta.borderColor}">${meta.icon} ${meta.name}</button>`
+      ).join('')}
+    </div>
+    
+    <!-- Ваши правила -->
+    ${userRules.length > 0 ? `
+      <h4 class="font-semibold text-gray-800 mb-2">✏️ Ваши правила (${userRules.length})</h4>
+      <div id="userRulesList" class="space-y-1 mb-4">
+        ${userRules.map(r => renderRuleRow(r)).join('')}
+      </div>
+    ` : ''}
+    
+    <!-- Встроенные правила -->
+    <div class="mt-2">
+      <h4 class="font-semibold text-gray-800 mb-2 cursor-pointer" onclick="toggleExclSection('autoRulesSection')">
+        🤖 Встроенные правила (${autoRules.length}) <span class="text-xs text-gray-400" id="autoRulesSection_arrow">▼</span>
+      </h4>
+      <div id="autoRulesSection" class="hidden space-y-1">
+        ${autoRules.map(r => renderRuleRow(r)).join('')}
+      </div>
+    </div>
+    
+    <!-- Добавить новое правило -->
+    <div class="mt-4 pt-4 border-t border-gray-200">
+      <h4 class="font-semibold text-gray-800 mb-2">➕ Добавить правило</h4>
+      <div class="flex gap-2">
+        <input type="text" id="newRulePattern" placeholder="Паттерн (напр. ЛЕРУА)" class="flex-1 p-2 border rounded-lg text-sm">
+        <select id="newRuleBucket" class="p-2 border rounded-lg text-sm">
+          ${Object.entries(BUCKET_META).map(([bk, meta]) => 
+            `<option value="${bk}">${meta.icon} ${meta.name}</option>`
+          ).join('')}
+        </select>
+        <button onclick="addManualRule()" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-purple-700 transition">+</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderRuleRow(rule) {
+  const meta = BUCKET_META[rule.bucket] || BUCKET_META.unassigned;
+  const extraInfo = rule.type === 'biz' ? ` → ${rule.bizCatName}` : (rule.type === 'category' ? ` → ${rule.category}` : '');
+  
+  return `
+    <div class="rule-row flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition text-sm" data-bucket="${rule.bucket}" data-pattern="${rule.pattern.toLowerCase()}">
+      <div class="flex items-center gap-2 flex-1 min-w-0">
+        <span class="shrink-0 w-6 h-6 flex items-center justify-center rounded-md text-xs" style="background:${meta.bgColor}; border:1px solid ${meta.borderColor}">${meta.icon}</span>
+        <span class="font-mono text-xs truncate">${rule.pattern}</span>
+        <span class="text-[10px] text-gray-400">${extraInfo}</span>
+      </div>
+      <div class="flex items-center gap-1 shrink-0">
+        <span class="text-[10px] text-gray-400">${rule.source}</span>
+        ${rule.editable ? `<button onclick="deleteRule('${rule.pattern.replace(/'/g, "\\'")}', '${rule.type}')" class="text-red-400 hover:text-red-600 text-sm px-1" title="Удалить">✕</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function filterRulesList() {
+  const q = (document.getElementById('rulesSearchInput')?.value || '').toLowerCase();
+  document.querySelectorAll('.rule-row').forEach(row => {
+    const pattern = row.dataset.pattern || '';
+    row.style.display = pattern.includes(q) ? '' : 'none';
+  });
+}
+
+function filterRulesByBucket(bucket) {
+  document.querySelectorAll('.rule-row').forEach(row => {
+    row.style.display = (bucket === 'all' || row.dataset.bucket === bucket) ? '' : 'none';
+  });
+}
+
+function deleteRule(pattern, type) {
+  const key = pattern.toUpperCase().trim();
+  
+  if (type === 'bucket') {
+    delete bucketRules[key];
+    saveBucketRules();
+  } else if (type === 'biz') {
+    delete businessRules[key];
+    saveUserRules();
+  } else if (type === 'category') {
+    delete userCategoryRules[key];
+    saveUserRules();
+  }
+  
+  // Пересчитываем ведра
+  assignBucketsToAll();
+  saveData();
+  
+  showToast({ icon: '🗑️', title: 'Правило удалено', message: `«${pattern}» — удалено`, type: 'delete' });
+  
+  // Обновляем экран правил
+  showRulesManager();
+}
+
+function addManualRule() {
+  const pattern = (document.getElementById('newRulePattern')?.value || '').trim();
+  const bucket = document.getElementById('newRuleBucket')?.value;
+  
+  if (!pattern) { alert('Введите паттерн'); return; }
+  if (!bucket) { alert('Выберите ведро'); return; }
+  
+  const key = pattern.toUpperCase();
+  bucketRules[key] = bucket;
+  saveBucketRules();
+  
+  // Пересчитываем ведра
+  assignBucketsToAll();
+  saveData();
+  
+  const meta = BUCKET_META[bucket];
+  showToast({ icon: '✅', title: 'Правило создано', message: `«${pattern}» → ${meta.icon} ${meta.name}`, type: 'success' });
+  
+  showRulesManager();
 }
 
 function formatMoneyCompact(amount) {
@@ -2832,13 +3142,20 @@ function showExcludedDrill(recipient, reason) {
     'phone': '📱 Перевод себе'
   };
   
-  // Все транзакции этого получателя
+  // Все транзакции этого получателя (если reason пустой — все причины)
   const txs = excl.filter(tx => {
     const m = tx.merchant || tx.description?.substring(0, 35) || 'Неизвестно';
-    return m === recipient && (tx.reason || 'pattern') === reason;
+    if (m !== recipient) return false;
+    if (reason && reason !== '') return (tx.reason || 'pattern') === reason;
+    return true;
   });
   
   if (txs.length === 0) return;
+  
+  // Текущее ведро мерчанта
+  const currentBucket = txs[0].bucket || getBucketForTx(txs[0]);
+  const currentMeta = BUCKET_META[currentBucket] || BUCKET_META.unassigned;
+  const effectiveReason = reason || txs[0].reason || 'pattern';
   
   // По месяцам
   const byMonth = {};
@@ -2858,15 +3175,36 @@ function showExcludedDrill(recipient, reason) {
   document.getElementById('drillTitle').textContent = recipient;
   
   const allCategories = getUserCategories();
+  const escRecipient = recipient.replace(/'/g, "\\'");
   
+  // Кнопки вёдер для ВСЕХ операций
+  const allBucketBtns = Object.entries(BUCKET_META).filter(([bk]) => bk !== currentBucket).map(([bk, meta]) => {
+    if (bk === 'family') {
+      // Семья — перенос в бюджет (прокрутить вниз к секции)
+      return `<button onclick="document.getElementById('moveToBudgetSection').scrollIntoView({behavior:'smooth'})" 
+                class="flex-1 py-3 rounded-xl text-sm font-bold transition border-2" 
+                style="background:${meta.bgColor}; color:${meta.color}; border-color:${meta.borderColor}">
+                ${meta.icon} В семью
+              </button>`;
+    }
+    return `<button onclick="moveAllToBucket('${escRecipient}', '${effectiveReason}', '${bk}')" 
+              class="flex-1 py-3 rounded-xl text-sm font-bold transition border-2" 
+              style="background:${meta.bgColor}; color:${meta.color}; border-color:${meta.borderColor}">
+              ${meta.icon} ${meta.name}
+            </button>`;
+  }).join('');
+
   document.getElementById('drillContent').innerHTML = `
-    <div class="mb-4 p-4 bg-orange-50 rounded-xl">
+    <div class="mb-4 p-4 rounded-xl" style="background:${currentMeta.bgColor}; border:2px solid ${currentMeta.borderColor}">
       <div class="font-medium text-lg text-gray-800">${recipient}</div>
-      <div class="text-sm text-gray-500 mt-1">${reasonLabels[reason] || reason}</div>
+      <div class="text-sm mt-1 flex items-center gap-2">
+        <span class="px-2 py-0.5 rounded-lg text-xs font-bold" style="background:${currentMeta.color}; color:white">${currentMeta.icon} ${currentMeta.name}</span>
+        <span class="text-gray-400">${reasonLabels[effectiveReason] || effectiveReason}</span>
+      </div>
       <div class="grid grid-cols-3 gap-3 mt-3">
         <div class="text-center">
           <div class="text-xs text-gray-500">Всего</div>
-          <div class="font-bold text-orange-600">${formatMoney(total)}</div>
+          <div class="font-bold" style="color:${currentMeta.color}">${formatMoney(total)}</div>
         </div>
         <div class="text-center">
           <div class="text-xs text-gray-500">В среднем/мес</div>
@@ -2876,6 +3214,15 @@ function showExcludedDrill(recipient, reason) {
           <div class="text-xs text-gray-500">Операций</div>
           <div class="font-bold text-gray-700">${txs.length}</div>
         </div>
+      </div>
+    </div>
+    
+    <!-- ═══ ПЕРЕМЕСТИТЬ ВСЕ В ВЕДРО ═══ -->
+    <div class="mb-4 p-4 bg-amber-50 rounded-xl border border-amber-200">
+      <h4 class="font-semibold text-amber-800 mb-1">🔀 Переместить ВСЕ ${txs.length} операций</h4>
+      <p class="text-xs text-amber-600 mb-3">Все «${recipient.substring(0, 25)}» навсегда → выбранное ведро</p>
+      <div class="flex gap-2">
+        ${allBucketBtns}
       </div>
     </div>
     
@@ -2890,16 +3237,16 @@ function showExcludedDrill(recipient, reason) {
           return '<option value="' + k + '" ' + sel + '>' + v.icon + ' ' + v.name + '</option>';
         }).join('')}
       </select>
-      <button onclick="tagAsBusiness('${recipient.replace(/'/g, "\\'")}', document.getElementById('bizCategorySelect').value)" 
+      <button onclick="tagAsBusiness('${escRecipient}', document.getElementById('bizCategorySelect').value)" 
               class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl text-sm font-bold transition">
         💼 Сохранить
       </button>
     </div>
     
-    <!-- Перенос в бюджет -->
-    <div class="mb-4 p-4 bg-green-50 rounded-xl border border-green-200">
-      <h4 class="font-semibold text-green-800 mb-2">📥 Перенести в бюджет</h4>
-      <p class="text-xs text-green-600 mb-3">Все ${txs.length} операций будут добавлены в отслеживаемые расходы</p>
+    <!-- Перенос в бюджет (семья) -->
+    <div id="moveToBudgetSection" class="mb-4 p-4 bg-green-50 rounded-xl border border-green-200">
+      <h4 class="font-semibold text-green-800 mb-2">👨‍👩‍👧 Перенести в семейный бюджет</h4>
+      <p class="text-xs text-green-600 mb-3">Все ${txs.length} операций → отслеживаемые расходы</p>
       <select id="exclMoveCategorySelect" class="w-full p-3 border rounded-xl text-sm mb-2" onchange="handleExclCategorySelectChange()">
         ${allCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
         <option value="__NEW__">➕ Создать новую категорию...</option>
@@ -2908,13 +3255,13 @@ function showExcludedDrill(recipient, reason) {
         <input type="text" id="exclCustomCategoryName" placeholder="Название новой категории" 
                class="w-full p-3 border rounded-xl text-sm" maxlength="30">
       </div>
-      <button onclick="moveExcludedToCategory('${recipient.replace(/'/g, "\\'")}', '${reason}')" 
+      <button onclick="moveExcludedToCategory('${escRecipient}', '${effectiveReason}')" 
               class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl text-sm font-bold transition">
         ✅ Перенести все ${txs.length} операций в бюджет
       </button>
     </div>
     
-    <!-- Помесячная таблица -->
+    <!-- ═══ ПОМЕСЯЧНАЯ ТАБЛИЦА С КНОПКАМИ ═══ -->
     <div class="space-y-2">
       ${months.map(mk => {
         const data = byMonth[mk];
@@ -2926,18 +3273,21 @@ function showExcludedDrill(recipient, reason) {
             </div>
             <div class="text-xs text-gray-500">${data.count} операций</div>
             <div class="mt-2 space-y-1">
-              ${data.items.sort((a,b) => b.amount - a.amount).slice(0, 10).map(tx => `
-                <div class="flex justify-between items-center text-xs group">
-                  <span class="text-gray-500">${tx.date}${tx.owner !== 'Unknown' ? ' • ' + tx.owner : ''}</span>
-                  <div class="flex items-center gap-2">
-                    <span class="text-gray-600">${formatMoney(tx.amount)}</span>
-                    <button onclick="moveOneExcludedPrompt('${tx.date}', '${recipient.replace(/'/g, "\\'")}', ${tx.amount}, '${(tx.owner || '').replace(/'/g, "\\'")}', '${reason}')" 
-                            class="text-green-500 hover:text-green-700 opacity-0 group-hover:opacity-100 transition text-xs px-1" title="Перенести в бюджет">📥</button>
-                    <button onclick="deleteOneExcluded('${tx.date}', '${recipient.replace(/'/g, "\\'")}', ${tx.amount}, '${(tx.owner || '').replace(/'/g, "\\'")}', '${reason}')" 
+              ${data.items.sort((a,b) => b.amount - a.amount).slice(0, 10).map((tx, idx) => {
+                const txId = `${tx.date}_${tx.amount}_${(tx.owner||'').replace(/'/g,'')}`;
+                return `
+                <div class="flex justify-between items-center text-xs group py-0.5">
+                  <span class="text-gray-500 truncate mr-1">${tx.date}${tx.owner !== 'Unknown' ? ' • ' + tx.owner : ''}</span>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <span class="text-gray-600 font-medium">${formatMoney(tx.amount)}</span>
+                    ${renderOneTxBucketBtns(tx, escRecipient, effectiveReason)}
+                    <button onclick="moveOneExcludedPrompt('${tx.date}', '${escRecipient}', ${tx.amount}, '${(tx.owner || '').replace(/'/g, "\\'")}', '${effectiveReason}')" 
+                            class="text-green-500 hover:text-green-700 opacity-0 group-hover:opacity-100 transition text-xs px-1" title="В бюджет (семья)">📥</button>
+                    <button onclick="deleteOneExcluded('${tx.date}', '${escRecipient}', ${tx.amount}, '${(tx.owner || '').replace(/'/g, "\\'")}', '${effectiveReason}')" 
                             class="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition text-sm px-1" title="Удалить">✕</button>
                   </div>
                 </div>
-              `).join('')}
+              `}).join('')}
               ${data.items.length > 10 ? `<div class="text-xs text-gray-400">...и ещё ${data.items.length - 10}</div>` : ''}
             </div>
           </div>
@@ -2947,13 +3297,99 @@ function showExcludedDrill(recipient, reason) {
     
     <!-- Кнопки удаления -->
     <div class="mt-4 pt-4 border-t border-gray-200 space-y-2">
-      <button onclick="deleteAllExcludedRecipient('${recipient.replace(/'/g, "\\'")}', '${reason}')" 
+      <button onclick="deleteAllExcludedRecipient('${escRecipient}', '${effectiveReason}')" 
               class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl text-sm font-bold transition">
         🗑️ Удалить «${recipient.substring(0, 25)}» из отслеживания (${txs.length} шт.)
       </button>
-      <p class="text-xs text-gray-400 text-center">Операции будут убраны из вкладки «Исключения»</p>
+      <p class="text-xs text-gray-400 text-center">Операции будут убраны из вкладки</p>
     </div>
   `;
+}
+
+// Кнопки вёдер для ОДНОЙ транзакции (inline, в списке)
+function renderOneTxBucketBtns(tx, escRecipient, reason) {
+  const currentBucket = tx.bucket || 'unassigned';
+  const btns = [];
+  
+  Object.entries(BUCKET_META).forEach(([bk, meta]) => {
+    if (bk === currentBucket || bk === 'family') return; // family = через 📥
+    btns.push(`<button onclick="event.stopPropagation(); moveOneTxToBucket('${tx.date}', '${escRecipient}', ${tx.amount}, '${(tx.owner||'').replace(/'/g,"\\'")}', '${reason}', '${bk}')" 
+      class="opacity-0 group-hover:opacity-100 transition text-[10px] px-1.5 py-0.5 rounded" 
+      style="background:${meta.bgColor}; color:${meta.color}; border:1px solid ${meta.borderColor}" 
+      title="${meta.name}">${meta.icon}</button>`);
+  });
+  
+  return btns.join('');
+}
+
+// Переместить ВСЕ операции мерчанта в ведро (с правилом навсегда)
+function moveAllToBucket(merchant, reason, targetBucket) {
+  const key = (merchant || '').toUpperCase().trim();
+  if (!key) return;
+  
+  const meta = BUCKET_META[targetBucket];
+  const txs = (budgetData.excludedTransactions || []).filter(tx => {
+    const m = (tx.merchant || tx.description?.substring(0, 35) || '').toUpperCase().trim();
+    if (m !== key) return false;
+    if (reason) return (tx.reason || 'pattern') === reason;
+    return true;
+  });
+  
+  if (txs.length === 0) return;
+  
+  const total = txs.reduce((s, t) => s + t.amount, 0);
+  if (!confirm(`Переместить ВСЕ ${txs.length} операций «${merchant}» → ${meta.icon} ${meta.name}?\n\nСумма: ${formatMoney(total)}\n\n✅ Правило запомнится навсегда`)) return;
+  
+  // Создаём правило
+  bucketRules[key] = targetBucket;
+  saveBucketRules();
+  
+  // Обновляем ведро у всех транзакций
+  saveToHistory(`Все ведро: ${merchant} → ${meta.name} (${txs.length} шт.)`);
+  txs.forEach(tx => { tx.bucket = targetBucket; });
+  
+  saveData();
+  hideDrillModal();
+  renderTab('excluded');
+  
+  showToast({
+    icon: meta.icon,
+    title: `Все → ${meta.name}`,
+    message: `${txs.length} операций «${merchant.substring(0, 25)}» на ${formatMoney(total)}`,
+    type: 'success',
+    showUndo: true
+  });
+}
+
+// Переместить ОДНУ транзакцию в ведро (разово, без правила)
+function moveOneTxToBucket(date, merchant, amount, owner, reason, targetBucket) {
+  const meta = BUCKET_META[targetBucket];
+  const excl = budgetData.excludedTransactions || [];
+  
+  // Находим конкретную транзакцию
+  const idx = excl.findIndex(tx => {
+    const m = tx.merchant || tx.description?.substring(0, 35) || 'Неизвестно';
+    return m === merchant && tx.date === date && Math.abs(tx.amount - amount) < 0.01 
+           && (tx.owner || '') === owner;
+  });
+  
+  if (idx === -1) return;
+  
+  excl[idx].bucket = targetBucket;
+  
+  saveToHistory(`1 операция: ${merchant} ${date} ${formatMoney(amount)} → ${meta.name}`);
+  saveData();
+  
+  // Обновляем drill (перерисовываем)
+  showExcludedDrill(merchant, reason);
+  
+  showToast({
+    icon: meta.icon,
+    title: `→ ${meta.name}`,
+    message: `${date} • ${formatMoney(amount)} — разово`,
+    type: 'success',
+    duration: 2000
+  });
 }
 
 // ==================== ПЕРЕНОС ИСКЛЮЧЁННЫХ В БЮДЖЕТ ====================
@@ -4779,10 +5215,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function autoSync() {
   try {
-    const [txData, exData, rulesData, settingsData, bizRulesData] = await Promise.all([
+    const [txData, exData, rulesData, settingsData, bizRulesData, bucketRulesData] = await Promise.all([
       fetchFromSheets('transactions'), fetchFromSheets('excluded'),
       fetchFromSheets('rules'), fetchFromSheets('settings'),
-      fetchFromSheets('bizrules')
+      fetchFromSheets('bizrules'), fetchFromSheets('bucketrules')
     ]);
     
     let changed = false;
@@ -4809,12 +5245,19 @@ async function autoSync() {
       localStorage.setItem('businessRules', JSON.stringify(businessRules));
       if (JSON.stringify(businessRules) !== oldBizJson) changed = true;
     }
+    if (bucketRulesData && bucketRulesData.success && bucketRulesData.data && Object.keys(bucketRulesData.data).length > 0) {
+      const oldBucketJson = JSON.stringify(bucketRules);
+      bucketRules = { ...bucketRules, ...bucketRulesData.data };
+      localStorage.setItem('bucketRules', JSON.stringify(bucketRules));
+      if (JSON.stringify(bucketRules) !== oldBucketJson) changed = true;
+    }
     if (settingsData.success && settingsData.data && Object.keys(settingsData.data).length > 0) {
       applyCloudSettings(settingsData.data);
       changed = true;
     }
     
     if (changed) {
+      assignBucketsToAll();
       budgetData.lastUpdate = new Date().toISOString();
       updateNorms();
       saveDataLocal();
